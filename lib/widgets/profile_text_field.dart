@@ -25,7 +25,7 @@ class _ProfileTextFieldState extends State<ProfileTextField> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
-      color: Colors.blueGrey.shade900,
+      color: Colors.grey.shade900,
       child: TextFormField(
         readOnly: true,
         decoration: InputDecoration(

@@ -4,11 +4,20 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../core/constants.dart';
 import '../models/user.dart';
 
+enum UserStatus {
+  friends,
+  requestSended,
+  requestReceived,
+  notFriends,
+}
+
 class UserRepository {
   final dio = Dio(
     BaseOptions(
       contentType: 'application/json',
       baseUrl: baseUrl,
+      connectTimeout: const Duration(seconds: 5),
+      receiveTimeout: const Duration(seconds: 5),
     ),
   );
   Future<User> getUser(String uid) async {

@@ -2,17 +2,21 @@ import 'package:client/bloc/auth/auth_bloc.dart';
 import 'package:client/bloc/event/event_bloc.dart';
 import 'package:client/bloc/events/events_bloc.dart';
 import 'package:client/core/style.dart';
+import 'package:client/cubit/add_event/color_picker_cubit.dart';
 import 'package:client/cubit/add_event/priority_wheel_cubit.dart';
 import 'package:client/cubit/add_event/stepper_cubit.dart';
 import 'package:client/cubit/add_event/stepper_error_cubit.dart';
+import 'package:client/cubit/add_event/type_cubit.dart';
 import 'package:client/widgets/submit_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/constants.dart';
+import '../widgets/color_picker.dart';
 import '../widgets/create_event_text_field.dart';
+import '../widgets/date_picker.dart';
+import '../widgets/type_widget.dart';
 
 class CreateEventScreen extends StatefulWidget {
   const CreateEventScreen({super.key});
@@ -24,6 +28,8 @@ class CreateEventScreen extends StatefulWidget {
 class _CreateEventScreenState extends State<CreateEventScreen> {
   final FixedExtentScrollController _priorityController =
       FixedExtentScrollController();
+  late TextEditingController _dateController;
+  late TextEditingController _timeController;
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
 
@@ -40,9 +46,22 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     context.read<AddEventPriorityWheelCubit>().setPriority('Low');
     context.read<AddEventStepperCubit>().setStep(0);
     context.read<AddEventStepperErrorCubit>().reset();
+    _dateController = TextEditingController(
+      text: defaultDateFormat.format(
+        DateTime.now(),
+      ),
+    );
+    _timeController = TextEditingController(
+      text: defaultTimeFormat.format(
+        DateTime.now(),
+      ),
+    );
   }
 
-  String color = '0xfff7f7f7';
+  DateTime dateNow = DateTime.now();
+  TimeOfDay timeNow = TimeOfDay.now();
+  DateTime? pickedDate;
+  TimeOfDay? pickedTime;
 
   @override
   Widget build(BuildContext context) {
@@ -53,15 +72,17 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     final bool isLoading = context.select<EventBloc, bool>(
       (bloc) => bloc.state.isLoading,
     );
+    final String color = context.watch<AddEventColorPickerCubit>().state;
     final String uid =
         context.select<AuthBloc, String>((bloc) => bloc.state.user?.id ?? '');
     final String currentPriority =
         context.watch<AddEventPriorityWheelCubit>().state;
+    final String type = context.watch<AddEventTypeCubit>().state;
     return Scaffold(
       appBar: AppBar(
         title: Text(
           'Add event',
-          style: AppTheme.mainStyle,
+          style: AppTheme.hintStyle,
         ),
         centerTitle: true,
       ),
@@ -71,6 +92,11 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
             !current.isLoading &&
             (current.event?.id ?? '').isNotEmpty,
         listener: (context, state) {
+          context.read<EventsBloc>().add(
+                EventsGetUserEventsEvent(
+                  uid: uid,
+                ),
+              );
           context.goNamed(
             'event',
             queryParams: {
@@ -89,7 +115,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                     onStepTapped: (step) =>
                         context.read<AddEventStepperCubit>().setStep(step),
                     controlsBuilder: (context, details) {
-                      if (currentStep < 3) {
+                      if (currentStep < 5) {
                         return SubmitButton(
                           content: Text(
                             'Continue',
@@ -131,6 +157,15 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                               : () {
                                   context.read<EventBloc>().add(
                                         EventCreateEventEvent(
+                                          eventDate: DateTime(
+                                            pickedDate?.year ?? dateNow.year,
+                                            pickedDate?.month ?? dateNow.month,
+                                            pickedDate?.day ?? dateNow.day,
+                                            pickedTime?.hour ?? timeNow.hour,
+                                            pickedDate?.minute ??
+                                                timeNow.minute,
+                                          ),
+                                          type: type,
                                           context: context,
                                           title: _titleController.text.trim(),
                                           description: _descriptionController
@@ -193,20 +228,12 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                             : currentStep > 2
                                 ? StepState.complete
                                 : StepState.disabled,
-                        isActive: currentStep > 1,
+                        isActive: currentStep > 2,
                         title: Text(
                           'Color',
                           style: AppTheme.mainStyle,
                         ),
-                        content: ColorPicker(
-                          pickerColor: Colors.grey,
-                          pickerAreaBorderRadius: BorderRadius.circular(21),
-                          onColorChanged: (pickedColor) {
-                            final String colorStr = pickedColor.toString();
-                            color = colorStr.split('(')[1].split(')')[0];
-                          },
-                          labelTypes: const [],
-                        ),
+                        content: const ColorPicker(),
                       ),
                       Step(
                         state: currentStep == 3
@@ -258,6 +285,131 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                               ),
                             ),
                           ),
+                        ),
+                      ),
+                      Step(
+                        state: currentStep == 4
+                            ? StepState.editing
+                            : currentStep > 4
+                                ? StepState.complete
+                                : StepState.disabled,
+                        isActive: currentStep > 4,
+                        title: Text(
+                          'Type',
+                          style: AppTheme.mainStyle,
+                        ),
+                        content: GridView.count(
+                          physics: const NeverScrollableScrollPhysics(),
+                          crossAxisCount: 3,
+                          shrinkWrap: true,
+                          children: [
+                            TypeWidget(
+                              image: 'assets/icons/Party.png',
+                              title: 'Party',
+                              currentType: type,
+                              onTap: () => context
+                                  .read<AddEventTypeCubit>()
+                                  .setType('Party'),
+                            ),
+                            TypeWidget(
+                              image: 'assets/icons/Job.png',
+                              title: 'Job',
+                              currentType: type,
+                              onTap: () => context
+                                  .read<AddEventTypeCubit>()
+                                  .setType('Job'),
+                            ),
+                            TypeWidget(
+                              image: 'assets/icons/Conference.png',
+                              title: 'Conference',
+                              currentType: type,
+                              onTap: () => context
+                                  .read<AddEventTypeCubit>()
+                                  .setType('Conference'),
+                            ),
+                            TypeWidget(
+                              image: 'assets/icons/Sport.png',
+                              title: 'Sport',
+                              currentType: type,
+                              onTap: () => context
+                                  .read<AddEventTypeCubit>()
+                                  .setType('Sport'),
+                            ),
+                            TypeWidget(
+                              image: 'assets/icons/Chill.png',
+                              title: 'Chill',
+                              currentType: type,
+                              onTap: () => context
+                                  .read<AddEventTypeCubit>()
+                                  .setType('Chill'),
+                            ),
+                            TypeWidget(
+                              image: 'assets/icons/Study.png',
+                              title: 'Study',
+                              currentType: type,
+                              onTap: () => context
+                                  .read<AddEventTypeCubit>()
+                                  .setType('Study'),
+                            ),
+                            TypeWidget(
+                              image: 'assets/icons/Other.png',
+                              title: 'Other',
+                              currentType: type,
+                              onTap: () => context
+                                  .read<AddEventTypeCubit>()
+                                  .setType('Other'),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Step(
+                        state: currentStep == 5
+                            ? StepState.editing
+                            : currentStep > 5
+                                ? StepState.complete
+                                : StepState.disabled,
+                        isActive: currentStep > 5,
+                        title: Text(
+                          'Date and time',
+                          style: AppTheme.mainStyle,
+                        ),
+                        content: Column(
+                          children: [
+                            TextFieldDateTimePicker(
+                              hint: 'Date',
+                              controller: _dateController,
+                              isDate: true,
+                              onTap: () async {
+                                pickedDate = await showDatePicker(
+                                  context: context,
+                                  initialDate: dateNow,
+                                  firstDate: dateNow,
+                                  lastDate: DateTime(dateNow.year + 1),
+                                );
+                                if (pickedDate != null) {
+                                  _dateController.text = defaultDateFormat
+                                      .format(pickedDate ?? DateTime.now());
+                                }
+                              },
+                            ),
+                            TextFieldDateTimePicker(
+                              hint: 'Time',
+                              controller: _timeController,
+                              isDate: false,
+                              onTap: () async {
+                                pickedTime = await showTimePicker(
+                                  context: context,
+                                  initialTime: timeNow,
+                                );
+                                if (pickedTime != null) {
+                                  _timeController.text = pickedTime
+                                      .toString()
+                                      .split('(')[1]
+                                      .split(')')[0];
+                                }
+                              },
+                            ),
+                          ],
                         ),
                       ),
                     ],

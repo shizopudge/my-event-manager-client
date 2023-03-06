@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/style.dart';
 
-class CreateEventTextfield extends StatefulWidget {
+class CreateEventTextfield extends StatelessWidget {
   final TextEditingController controller;
   final String hint;
   final bool isDescription;
@@ -16,11 +16,6 @@ class CreateEventTextfield extends StatefulWidget {
   });
 
   @override
-  State<CreateEventTextfield> createState() => _CreateEventTextfieldState();
-}
-
-class _CreateEventTextfieldState extends State<CreateEventTextfield> {
-  @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(12),
@@ -31,14 +26,14 @@ class _CreateEventTextfieldState extends State<CreateEventTextfield> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
-            color: Colors.blueGrey.shade900,
+            color: Colors.grey.shade900,
             child: TextFormField(
-              controller: widget.controller,
-              maxLines: widget.isDescription ? 10 : null,
-              maxLength: widget.isDescription ? 200 : null,
+              controller: controller,
+              maxLines: isDescription ? 10 : 3,
+              maxLength: isDescription ? 200 : 50,
               style: AppTheme.hintStyle,
               decoration: InputDecoration(
-                prefixIcon: widget.isError
+                prefixIcon: isError
                     ? Icon(
                         Icons.error,
                         color: Colors.red.shade300,
@@ -46,7 +41,7 @@ class _CreateEventTextfieldState extends State<CreateEventTextfield> {
                     : null,
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.all(15),
-                hintText: widget.hint,
+                hintText: hint,
                 hintStyle: AppTheme.hintStyle,
               ),
             ),

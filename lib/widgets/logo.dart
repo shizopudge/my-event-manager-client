@@ -11,7 +11,7 @@ class Logo extends StatelessWidget {
   Widget build(BuildContext context) {
     return Image.asset(
       'assets/icons/logo.png',
-      color: Colors.blueGrey.shade500,
+      color: Colors.blueGrey,
       height: height * .15,
     );
   }

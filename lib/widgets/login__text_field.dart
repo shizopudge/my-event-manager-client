@@ -37,7 +37,7 @@ class _LoginTextFieldState extends State<LoginTextField> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
-            color: Colors.blueGrey.shade900,
+            color: Colors.grey.shade900,
             child: TextFormField(
               controller: widget.controller,
               inputFormatters: [

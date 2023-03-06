@@ -8,3 +8,15 @@ class EventsGetUserEventsEvent extends EventsEvent {
 
   EventsGetUserEventsEvent({required this.uid});
 }
+
+class EventsGetFinishedUserEventsEvent extends EventsEvent {
+  final String uid;
+
+  EventsGetFinishedUserEventsEvent({required this.uid});
+}
+
+class EventsGetUnfinishedUserEventsEvent extends EventsEvent {
+  final String uid;
+
+  EventsGetUnfinishedUserEventsEvent({required this.uid});
+}

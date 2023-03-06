@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../core/style.dart';
-
 class SubmitButton extends StatelessWidget {
   final Widget content;
   final void Function()? onTap;
@@ -26,9 +24,9 @@ class SubmitButton extends StatelessWidget {
         onPressed: onTap,
         style: ElevatedButton.styleFrom(
           elevation: 8,
-          backgroundColor: Colors.blueGrey.shade700,
+          backgroundColor: Colors.blueGrey,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
           ),
           minimumSize: Size(width, height),
         ),

@@ -1,68 +1,101 @@
 import 'package:client/bloc/auth/auth_bloc.dart';
 import 'package:client/core/style.dart';
+import 'package:client/cubit/tabs/tabs_controller.dart';
+import 'package:client/ui/app_menu_screen.dart';
 import 'package:client/ui/events_screen.dart';
-import 'package:client/widgets/drawer.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:client/ui/friends_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
-import '../widgets/main_appbar.dart';
+import '../widgets/floating_button.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this)
+      ..addListener(
+        () =>
+            context.read<TabControllerCubit>().currentTab(_tabController.index),
+      );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final String username =
-        context.watch<AuthBloc>().state.user?.username ?? 'null';
     final String uid = context.watch<AuthBloc>().state.user?.id ?? 'null';
-    final height = MediaQuery.of(context).size.height;
+    final double height = MediaQuery.of(context).size.height;
+    final double width = MediaQuery.of(context).size.width;
+    final int currentTab = context.watch<TabControllerCubit>().state;
     return Scaffold(
-      endDrawer: MainDrawer(
-        height: height,
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: InkWell(
-          onTap: () => context.go('/home/create-event'),
-          radius: 32,
-          borderRadius: BorderRadius.circular(21),
-          child: const Icon(
-            CupertinoIcons.add_circled_solid,
-            size: 60,
-          ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
+      floatingActionButton: currentTab == 0
+          ? AddFloatingButton(
+              isEvent: true,
+              width: width * .45,
+              height: height * .12,
+            )
+          : null,
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        title: TabBar(
+          indicatorWeight: 2.5,
+          indicatorColor: Colors.blueGrey,
+          controller: _tabController,
+          onTap: (index) =>
+              context.read<TabControllerCubit>().currentTab(index),
+          tabs: [
+            Tab(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Events',
+                  style: AppTheme.hintStyle,
+                ),
+              ),
+            ),
+            Tab(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Friends',
+                  style: AppTheme.hintStyle,
+                ),
+              ),
+            ),
+            Tab(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Menu',
+                  style: AppTheme.hintStyle,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
       body: DefaultTabController(
-        length: 2,
-        child: NestedScrollView(
-          headerSliverBuilder: (context, value) {
-            return [
-              MainAppbar(
-                height: height,
-                username: username,
-                openDrawer: () => Scaffold.of(context).openEndDrawer(),
-              ),
-            ];
-          },
-          body: TabBarView(
-            children: [
-              EventsScreen(
-                uid: uid,
-              ),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Friends',
-                    style: AppTheme.mainStyle,
-                  ),
-                ],
-              ),
-            ],
-          ),
+        length: 3,
+        child: TabBarView(
+          controller: _tabController,
+          children: [
+            EventsScreen(
+              uid: uid,
+            ),
+            FriendsScreen(
+              uid: uid,
+            ),
+            const AppMenu(),
+          ],
         ),
       ),
     );

@@ -2,17 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  static TextStyle mainStyle = GoogleFonts.raleway(
+  static TextStyle titleStyle = GoogleFonts.aBeeZee(
+    fontWeight: FontWeight.bold,
+    fontSize: 36,
+  );
+
+  static TextStyle mainStyle = GoogleFonts.aBeeZee(
     fontWeight: FontWeight.w700,
     fontSize: 24,
   );
 
-  static TextStyle hintStyle = GoogleFonts.raleway(
+  static TextStyle hintStyle = GoogleFonts.aBeeZee(
     fontWeight: FontWeight.w700,
     fontSize: 20,
   );
 
-  static TextStyle smallStyle = GoogleFonts.raleway(
+  static TextStyle smallStyle = GoogleFonts.aBeeZee(
     fontWeight: FontWeight.bold,
     fontSize: 14,
   );
@@ -23,17 +28,11 @@ class AppTheme {
       primary: Colors.blueGrey.shade100,
       secondary: Colors.blueGrey.shade100,
     ),
-    drawerTheme: const DrawerThemeData(
-      backgroundColor: Color.fromARGB(255, 33, 36, 37),
-    ),
     appBarTheme: const AppBarTheme(
-      color: Color.fromARGB(255, 33, 36, 37),
+      color: Colors.black,
     ),
     iconTheme: const IconThemeData(
-      color: Colors.white,
-    ),
-    primaryIconTheme: const IconThemeData(
-      color: Colors.white,
+      color: Colors.blueGrey,
     ),
   );
 

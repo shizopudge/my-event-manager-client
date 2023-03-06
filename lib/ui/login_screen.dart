@@ -1,13 +1,12 @@
 import 'package:client/bloc/auth/auth_bloc.dart';
 import 'package:client/core/style.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/extensions.dart';
 import '../cubit/login/login_cubit.dart';
 import '../widgets/login__text_field.dart';
-import '../core/extensions.dart';
 import '../widgets/logo.dart';
 import '../widgets/submit_button.dart';
 
@@ -62,13 +61,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Something went wrong...\nTry again later',
+                      'Something went wrong...',
                       textAlign: TextAlign.center,
                       style: AppTheme.mainStyle,
                     ),
                     SubmitButton(
                       content: Text(
-                        'Reload',
+                        'Try again',
                         style: AppTheme.mainStyle,
                       ),
                       onTap: () => context.go('/'),
@@ -167,23 +166,22 @@ class _LoginScreenState extends State<LoginScreen> {
           }
           if (!isLogin) {
             return SingleChildScrollView(
-              physics: keyboardShowed
-                  ? const ScrollPhysics()
-                  : const NeverScrollableScrollPhysics(),
               child: SafeArea(
                 child: Form(
                   key: _registrationFormKey,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 25,
-                        ),
-                        child: Logo(
-                          height: height,
-                        ),
-                      ),
+                      keyboardShowed
+                          ? const SizedBox()
+                          : Padding(
+                              padding: const EdgeInsets.only(
+                                bottom: 25,
+                              ),
+                              child: Logo(
+                                height: height,
+                              ),
+                            ),
                       LoginTextField(
                         controller: _usernameController,
                         hint: 'Username',

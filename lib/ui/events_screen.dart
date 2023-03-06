@@ -1,11 +1,12 @@
-import 'dart:math';
-
+import 'package:client/widgets/event_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../bloc/events/events_bloc.dart';
 import '../core/style.dart';
+import '../core/utils.dart';
 import '../data/events/models/event.dart';
+import '../widgets/search_box.dart';
 
 class EventsScreen extends StatefulWidget {
   final String uid;
@@ -19,6 +20,7 @@ class EventsScreen extends StatefulWidget {
 }
 
 class _EventsScreenState extends State<EventsScreen> {
+  final TextEditingController _searchController = TextEditingController();
   @override
   void initState() {
     super.initState();
@@ -30,13 +32,9 @@ class _EventsScreenState extends State<EventsScreen> {
   }
 
   @override
-  void didUpdateWidget(covariant EventsScreen oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    context.read<EventsBloc>().add(
-          EventsGetUserEventsEvent(
-            uid: widget.uid,
-          ),
-        );
+  void dispose() {
+    super.dispose();
+    _searchController.dispose();
   }
 
   @override
@@ -46,88 +44,126 @@ class _EventsScreenState extends State<EventsScreen> {
     final double width = MediaQuery.of(context).size.width;
     final bool isLoading =
         context.select<EventsBloc, bool>((bloc) => bloc.state.isLoading);
+    final bool isError =
+        context.select<EventsBloc, bool>((bloc) => bloc.state.isError);
     if (isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(
-          strokeWidth: 2,
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+          ),
+        ),
+      );
+    }
+    if (isError) {
+      return Scaffold(
+        body: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error,
+              size: 32,
+              color: Colors.orange.shade700,
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                'Something went wrong...',
+                textAlign: TextAlign.center,
+                style: AppTheme.hintStyle,
+              ),
+            ),
+            InkWell(
+              onTap: () => context.read<EventsBloc>().add(
+                    EventsGetUserEventsEvent(
+                      uid: widget.uid,
+                    ),
+                  ),
+              borderRadius: BorderRadius.circular(21),
+              child: const Icon(
+                Icons.replay_circle_filled_outlined,
+                size: 50,
+              ),
+            ),
+          ],
         ),
       );
     }
     if (events.isEmpty) {
-      return Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'It seems to me or here is somehow empty?',
-            textAlign: TextAlign.center,
-            style: AppTheme.hintStyle,
-          ),
-        ],
+      return Scaffold(
+        body: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/icons/empty.png',
+              height: height * .2,
+            ),
+            Text(
+              'It seems to me or here is somehow empty?',
+              textAlign: TextAlign.center,
+              style: AppTheme.hintStyle,
+            ),
+          ],
+        ),
       );
     } else {
-      return ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: events.length,
-        itemBuilder: (context, index) {
-          final Event event = events[index];
-          final int color = int.parse(event.color ?? '');
-          return Container(
-            height: height * .3,
-            width: width * .2,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.blueGrey.shade900,
-                  Colors.grey.shade800,
+      return Scaffold(
+        body: Column(
+          children: [
+            SearchBox(
+              controller: _searchController,
+              onChanged: (query) {},
+            ),
+            Padding(
+              padding: const EdgeInsets.only(right: 25),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text(
+                    'Sort',
+                    style: AppTheme.hintStyle,
+                  ),
+                  const SizedBox(
+                    width: 8,
+                  ),
+                  // PopupMenuButton(itemBuilder:(context) {
+
+                  // },)
+                  InkWell(
+                    onTap: () {},
+                    child: const Icon(
+                      Icons.sort_rounded,
+                      size: 32,
+                    ),
+                  ),
                 ],
               ),
-              borderRadius: BorderRadius.circular(12),
             ),
-            child: Column(
-              children: [
-                Expanded(
-                  flex: 1,
-                  child: event.isFinished
-                      ? const Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Icon(
-                            Icons.check,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Icon(
-                            Icons.check,
-                            color: Colors.grey,
-                          ),
-                        ),
+            Expanded(
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 15, horizontal: 5),
+                child: ListView.builder(
+                  scrollDirection: Axis.vertical,
+                  itemCount: events.length,
+                  itemBuilder: (context, index) {
+                    final Event event = events[index];
+                    final int color = int.parse(event.color ?? '');
+                    final int daysBeforeEvent = daysBetween(
+                      DateTime.now(),
+                      event.eventDate,
+                    );
+                    return EventWidget(
+                      event: event,
+                      color: color,
+                      daysBeforeEvent: daysBeforeEvent,
+                    );
+                  },
                 ),
-                Expanded(
-                  flex: 10,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Color(color),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 1,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      event.priority,
-                      style: AppTheme.smallStyle,
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
-          );
-        },
+          ],
+        ),
       );
     }
   }

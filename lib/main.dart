@@ -1,4 +1,11 @@
+import 'package:client/bloc/friends/friends_bloc.dart';
+import 'package:client/bloc/user/user_bloc.dart';
+import 'package:client/cubit/add_event/color_picker_cubit.dart';
 import 'package:client/cubit/add_event/stepper_error_cubit.dart';
+import 'package:client/cubit/add_event/type_cubit.dart';
+import 'package:client/cubit/tabs/tabs_controller.dart';
+import 'package:client/data/friends/repository/friends_repository.dart';
+import 'package:client/data/user/repository/user_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -40,6 +47,17 @@ class MyApp extends StatelessWidget {
           ),
         ),
         BlocProvider(
+          create: (context) => FriendsBloc(
+            friendsReposiotry: FriendsRepository(),
+          ),
+        ),
+        BlocProvider(
+          create: (context) => UserBloc(
+            userRepository: UserRepository(),
+            friendsRepository: FriendsRepository(),
+          ),
+        ),
+        BlocProvider(
           create: (_) => LoginScreenCubit(),
         ),
         BlocProvider(
@@ -56,6 +74,15 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider(
           create: (_) => AddEventStepperErrorCubit(),
+        ),
+        BlocProvider(
+          create: (_) => TabControllerCubit(),
+        ),
+        BlocProvider(
+          create: (_) => AddEventTypeCubit(),
+        ),
+        BlocProvider(
+          create: (_) => AddEventColorPickerCubit(),
         ),
       ],
       child: BlocSelector<ThemeCubit, String, String>(

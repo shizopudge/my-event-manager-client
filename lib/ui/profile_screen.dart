@@ -1,7 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:client/bloc/auth/auth_bloc.dart';
 import 'package:client/core/style.dart';
-import 'package:client/widgets/delete_button.dart';
 import 'package:client/widgets/submit_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
